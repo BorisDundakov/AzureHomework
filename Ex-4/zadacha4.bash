@@ -98,8 +98,7 @@ az aks create \
 	      --network-plugin azure
 
 
-#4.3 Create a vnet peering between this network and workload-rg network
-
+#4.3 Create a vnet peering between this network and network in workload-rg 
 
 net1Id=$(az network vnet show \
   --resource-group $RESOURCE_GROUP_NAME \
