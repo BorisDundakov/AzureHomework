@@ -127,10 +127,10 @@ az network vnet peering create \
   --allow-vnet-access
 
 #4.4 Run a basic docker container 
-docker pull busybox
-docker run -it busybox /bin/bash
+#docker pull busybox
+#docker run -it busybox /bin/bash
 
 #4.5 Log inside the container and write the following:
 
-RUN apt-get update && apt-get install -y openssh-server apache2 supervisor
-ssh -i ~/.ssh/id_ed25519.pub bobi@10.111.12.123
+#RUN apt-get update && apt-get install -y openssh-server apache2 supervisor
+#ssh -i ~/.ssh/id_ed25519.pub bobi@10.111.12.123
