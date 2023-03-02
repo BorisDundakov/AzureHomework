@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: executor-pod
+spec:
+  # volume declaration inside the pod (name and the claim it gets it from)
+  volumes:
+    - name: shared-storage
+      persistentVolumeClaim:
+        claimName: hw-pvc
+  
+  initContainers:
+    - name: gitdownloader-container
+      image: ubuntu:latest
+      env:  
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: gh-credentials
+              key: token
+          
+        - name: GIT_REPO
+          valueFrom:
+            secretKeyRef:
+              name: gh-credentials
+              key: repository
+
+        - name: GIT_USER 
+          valueFrom:
+            secretKeyRef:
+              name: gh-credentials
+              key: username
+      # mounting the persistent-volume-claim in inside the container
+    
+      volumeMounts:
+      - name: shared-storage
+        mountPath: "/mnt/volume"
+    
+      command:
+      #- sleep 100d;
+      - /bin/sh
+      - -c
+      - |
+          echo 'Before update'
+          apt-get -y update
+          echo 'After update'
+          apt-get -y install git
+          echo 'installed git'
+          git clone https://${GIT_TOKEN}@github.com/${GIT_USER}/${GIT_REPO} 
+          echo 'cloned repo'
+          cp -R Exam1 /mnt/volume
+          echo 'Copied directory to mount'
+          rm -r Exam1
+          echo 'Removed from home dir'
+          apt autoremove
+          apt remove -y git
+          echo 'removed git'
+          echo 'Job Done!'
+    
+  
+  containers:          
+    # Init container to specify 'executor-container' to run only after 'gitdownloader-container' is completed
+        
+    - name: executor-container
+      image: ubuntu:latest
+      env:
+        - name: FIRST_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db-csv
+              key: name
+          
+        - name: SURNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-csv
+              key: surname
+
+        - name: REGION 
+          valueFrom:
+            secretKeyRef:
+              name: db-csv
+              key: region
+        
+        - name: GIT_REPO
+          valueFrom:
+            secretKeyRef:
+              name: gh-credentials
+              key: repository
+      
+            
+      command: 
+      - /bin/sh
+      - -c
+      - |
+          echo 'started second container'
+          apt-get -y update
+          echo 'after update of second pot'
+          cd /mnt/volume/${GIT_REPO}
+          echo 'after changed directory'
+          echo 'before script execution'
+          cat user_db.csv
+          bash user_list_update.bash ${FIRST_NAME} ${SURNAME} ${REGION}
+          echo 'after script execution'
+          cat user_db.csv
+
+      volumeMounts:
+      - name: shared-storage
+        mountPath: "/mnt/volume"
+
+  restartPolicy: Never  
+
+

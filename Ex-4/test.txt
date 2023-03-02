@@ -1,0 +1,4 @@
+kubectl create secret generic db-csv \
+    --from-file=./name.txt \
+    --from-file=./surname.txt \
+    --from-file=./region.txt
